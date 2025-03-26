@@ -1,0 +1,49 @@
+version: "3"
+
+services:
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./inventory_server
+    ports:
+      - "1337:1337"
+    networks:
+      - app-network
+
+  # Discovery Service
+  discovery-service:
+    build:
+      context: ./discovery
+    depends_on:
+      - inventory-service
+    environment:
+      - INVENTORY_SERVICE_URL=http://inventory-service:1337/inventory
+    volumes:
+      #- ./discovery/targets.json:/etc/prometheus/targets.json
+      - discovery-data:/etc/prometheus
+    networks:
+      - app-network
+
+  # Prometheus
+  prometheus:
+    build:
+      context: ./prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      #- ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - discovery-data:/etc/prometheus
+    networks:
+      - app-network
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  discovery-data:

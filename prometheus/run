@@ -1,0 +1,3 @@
+docker run -d -p 9090:9090 -v /Users/netanel/Documents/repos/trigo-homework/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+-v /Users/netanel/Documents/repos/trigo-homework/discovery/targets.json:/etc/prometheus/targets.json \
+ --name prometheus prom/prometheus
