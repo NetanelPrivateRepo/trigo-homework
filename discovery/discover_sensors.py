@@ -1,22 +1,23 @@
 import requests
 import json
+import time
 
 inventory_url = "http://inventory-service:1337/inventory"
-response = requests.get(inventory_url)
-sensors = response.json()
 
-if sensors:
-    targets = []
-    for sensor in sensors:
-        targets.append({
-            "targets": [sensor],
-            "labels": {"job": "sensors"}
-        })
+while True:
+    try:
+        response = requests.get(inventory_url)
+        response.raise_for_status()
+        sensors = response.json()
 
-    with open('/etc/prometheus/targets.json', 'w') as f:
-        if targets:
+        targets = [{"targets": [sensor], "labels": {"job": "sensors"}} for sensor in sensors]
+
+        with open('/etc/prometheus/targets.json', 'w') as f:
             json.dump(targets, f, indent=2)
-        else:
-            print("No valid targets found, nothing written to the file.")
-else:
-    print("No sensors data available.")
+
+        print("Updated targets.json with sensors:", targets)
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    time.sleep(10)
